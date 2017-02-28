@@ -22,7 +22,7 @@ function putLyrics(lyrics, song, album, artist, callback)
   callback()
 }
 
-function getLyrics(link, song, album, artist, callback)
+function getLyrics(link, song, album, artist, callback, callback2)
 {
   var lyrics = "";
 
@@ -62,7 +62,7 @@ function getLyrics(link, song, album, artist, callback)
   });
 }
 
-function getSongsFromHTML(html, band, callback)
+function getSongsFromHTML(html, band, callback, callback2, callback3) //TODO CALLBACKS
 {
   tr.newTorSession(function(err) {
     if(err) console.log(err);
