@@ -1,0 +1,19 @@
+{
+  "name": "lyrics-scaper",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JakeStanger/lyrics-scaper.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JakeStanger/lyrics-scaper/issues"
+  },
+  "homepage": "https://github.com/JakeStanger/lyrics-scaper#readme"
+}
