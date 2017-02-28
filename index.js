@@ -1,12 +1,50 @@
-var request = require("request")
+var request = require("request");
+var fs = require("fs");
+var sleep = require("sleep");
 
-//const BANDS = ["pinkfloyd", "yes", "kingcrimson"];
-const BANDS = ["pinkfloyd"];
+const BANDS = ["pinkfloyd", "yes", "kingcrimson"];
+//const BANDS = ["pinkfloyd"];
 const URL = "http://www.azlyrics.com";
 
 var songs = {};
 
-function getSongsFromHTML(html)
+function putLyrics(lyrics, song, album, artist, callback)
+{
+  //Create objects if they do not exist
+  if(!songs[artist]) songs[artist] = {};
+  if(!songs[artist][album]) songs[artist][album] = {};
+
+  songs[artist][album][song] = lyrics;
+  console.log(`Added ${song}`)
+
+  callback()
+}
+
+function getLyrics(link, song, album, artist, callback)
+{
+  sleep.msleep(500); //To avoid DOS trigger
+  var lyrics = "";
+
+  request(URL + link, function (error, response, body)
+  {
+    if (!error)
+    {
+      if(!body.includes('503 Service Temporarily Unavailable'))
+      {
+      lyrics = body.split("<div>")[1].split("</div>")[0];
+        putLyrics(lyrics.replace("<!-- Usage of azlyrics.com content by any third-party lyrics provider is prohibited by our licensing agreement. Sorry about that. -->", "")
+                        .replaceAll("<br>", "")
+                        .replaceAll("<b>", "**").replaceAll("</b>", "**")
+                        .replaceAll("<i>", "*").replaceAll("</i>", "*")
+                        .replaceAll("&quot;", '"'), song, album, artist, callback);
+      }
+      else console.log(`Omitting ${song} (${link})`)
+    }
+    else console.log(error);
+  });
+}
+
+function getSongsFromHTML(html, band, callback)
 {
   //Get list of songs
   html = html.split('<div id="listAlbum">')[1];
@@ -19,12 +57,15 @@ function getSongsFromHTML(html)
   {
     albumData = albums[album];
     title = getFromBetween.get(albumData, '<b>"', '"</b>');
-    pages = getFromBetween.get(albumData, '<a href="..', '" target="_blank">')
-    console.log(title)
-    console.log(pages)
-  }
+    songNames = getFromBetween.get(albumData, 'target="_blank">', "</a>");
+    pages = getFromBetween.get(albumData, '<a href="..', '" target="_blank">');
 
-  console.log(albums);
+    for(page in pages)
+    {
+      getLyrics(pages[page], songNames[page], title, band, callback)
+      //sleep.msleep(500); //To avoid DOS trigger
+    }
+  }
 }
 
 function getSongs(band)
@@ -33,15 +74,28 @@ function getSongs(band)
   {
     if (!error)
     {
-        getSongsFromHTML(body);
+      getSongsFromHTML(body, band, function()
+      {
+        var json = JSON.stringify(songs, null, 2);
+        fs.writeFile(`${band}.json`, json, function(err)
+        {
+          if(err) return console.log(err);
+        });
+      });
     }
     else console.log(error);
   });
 }
 
-for(band in BANDS) getSongs(BANDS[band]);
+function go()
+{
+  for(band in BANDS) getSongs(BANDS[band]);
+}
+//getLyrics("/lyrics/genesis/suppersready.html", "Supper's Ready", "Foxtrot", "Genesis", function(){
+  //console.log(songs)
+//});
 
-
+go();
 
 var getFromBetween = {
     results:[],
